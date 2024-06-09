@@ -14,9 +14,9 @@ const AccountSlice = createSlice({
   initialState,
   reducers: {
     deposit(state, action) {
-      console.log(state);
-      console.log("difference");
-      console.log(action);
+      // console.log(state);
+      // console.log("difference");
+      console.log(action.payload);
       state.balance += action.payload;
       state.isLoading = false;
       state.error = null;
@@ -54,29 +54,23 @@ const AccountSlice = createSlice({
   },
 });
 
-export function deposit(amount, currency) {
-  if (currency === "USD") return { type: "account/deposit", payload: amount };
-  return async function (dispatch, getState) {
-    dispatch({ type: "account/convertingCurrency" });
-    try {
-      const res = await fetch(
-        `https://api.frankfurter.app/latest?amount=${amount}&from=${currency}&to=USD`
-      );
-      if (!res.ok) throw new Error("Network response was not ok");
-      const data = await res.json();
-      const converted = data.rates.USD * amount;
-      dispatch({ type: "account/deposit", payload: converted });
-    } catch (error) {
-      dispatch({
-        type: "account/error",
-        payload: "Currency conversion failed",
-      });
-    }
-  };
+export async function calculateDeposit(amount, currency) {
+  if (currency === "USD") return amount;
+  // dispatch({ type: "account/convertingCurrency" });
+  try {
+    const res = await fetch(
+      `https://api.frankfurter.app/latest?amount=${amount}&from=${currency}&to=USD`
+    );
+    if (!res.ok) throw new Error("Network response was not ok");
+    const data = await res.json();
+    const convertedAmount = data.rates.USD * amount;
+    return convertedAmount;
+  } catch (error) {
+    // handle error
+  }
 }
-console.log(AccountSlice);
 
-export const { withdraw, requestLoan, payLoan } = AccountSlice.actions;
+export const { deposit, withdraw, requestLoan, payLoan } = AccountSlice.actions;
 
 export default AccountSlice.reducer;
 
